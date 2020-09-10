@@ -49,6 +49,7 @@ export CLASSPATH="${APPENGINE_HOME}/lib":${CLASSPATH}
 # The next line enables Python libraries for Google Cloud SDK
 #export PYTHONPATH=${GAE_SDK_ROOT}:${PYTHONPATH}
 ...
+
 source /etc/profile
 gcloud components update
 gcloud components install app-engine-python app-engine-python-extras appctl
@@ -68,6 +69,7 @@ vim /opt/testrtc/Gruntfile.js :
 vim /opt/testrtc/.eslintrc
 ...
     "API_KEY": false,
+...
 
 ```
 * Custom file call.js :
@@ -178,7 +180,7 @@ python /opt/google-cloud-sdk/bin/dev_appserver.py /opt/testrtc/out/app.yaml --en
 ```
 ### Setup service :
 ```
-# This setup is for can run even reboot
+# This setup is to be able to run testrtc when a reboot occurs
 
 vim /etc/systemd/system/testrtc.service 
 ...
