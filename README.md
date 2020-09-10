@@ -1,7 +1,7 @@
 ## README
 This repository is modified from https://github.com/KaptenJansson/testrtc with some custom for personal local use. Why?
 * My own turn is dedicated locally -> on-premise (not on Google Cloud Platform)
-* This guide is for testing whether the client can connect to my local application with a separate turn server,
+* This guide is for testing whether the client can connect to my local application with a separate turn server
 * This doesn't use apprtc at https://github.com/webrtc/apprtc
 * This guide doesn't use `API_KEY` parameter
 
@@ -27,7 +27,7 @@ grunt
 grunt build
 ```
 
-## Install google-cloud-sdk :
+### Install google-cloud-sdk :
 ```
 apt install python-pip -y
 pip install webapp2 webob bootstrapping
@@ -54,7 +54,7 @@ gcloud components update
 gcloud components install app-engine-python app-engine-python-extras appctl
 ```
 
-## Custom file Gruntfile.js :
+### Custom file Gruntfile.js :
 ```
 vim /opt/testrtc/Gruntfile.js :
 ...
@@ -63,7 +63,7 @@ vim /opt/testrtc/Gruntfile.js :
     //   'TURN_URL': 'https://networktraversal.googleapis.com/v1alpha/iceconfig?key='
 ...
 ```
-## Custom file .eslintrc :
+### Custom file .eslintrc :
 ```
 vim /opt/testrtc/.eslintrc
 ...
@@ -171,11 +171,12 @@ xhr.open('POST', TURN_URL + API_KEY, false);
 
 grunt
 grunt build
-## Testing with custom port
+```
+### Testing
 ```
 python /opt/google-cloud-sdk/bin/dev_appserver.py /opt/testrtc/out/app.yaml --enable_host_checking=False
 ```
-## Setup service :
+### Setup service :
 ```
 # This setup is for can run even reboot
 
