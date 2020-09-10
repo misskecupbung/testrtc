@@ -1,88 +1,198 @@
-[![Build Status](https://travis-ci.org/webrtc/testrtc.svg?branch=master)](https://travis-ci.org/webrtc/testrtc)
+## README
+This repository is modified from https://github.com/KaptenJansson/testrtc with some custom for personal local use. Why?
+* My own turn is dedicated locally -> on-premise (not on Google Cloud Platform)
+* This guide is for testing whether the client can connect to my local application with a separate turn server,
+* This doesn't use apprtc at https://github.com/webrtc/apprtc
+* This guide doesn't use `API_KEY` parameter
 
-# TestRTC #
-[WebRTC troubleshooter](https://test.webrtc.org/) provides a set of tests that can be easily run by a user to help diagnose
-WebRTC related issues. The user can then download a report containing all the gathered information or upload the log and
-create a temporary link with the report result.
+## Requirement
+* Install turn-server , remember :
+    * IP/domain, eg: turn.example.com:5349
+    * username, eg: USERNAME
+    * password, eg: PASSWORD
+* This guide is tested on [Ubuntu 18.04](https://ubuntu.com/).
 
-## Automatic tests ##
-* Microphone
-  * Audio capture
-    * Checks the microphone is able to produce 2 seconds of non-silent audio
-    * Computes peak level and maximum RMS
-    * Clip detection
-    * Mono mic detection
-* Camera
-  * Check WxH resolution
-    * Checks the camera is able to capture at the requested resolution for 5 seconds
-    * Checks if the frames are frozen or muted/black
-    * Detects how long to start encode frames
-    * Reports encode time and average framerate
-  * Check supported resolutions
-    * Lists resolutions that appear to be supported
-* Connectivity
-  * Udp/Tcp connectivity
-    * Verifies it can talk with a turn server with the given protocol
-  * IPv6 connectivity
-    * Verifies it can gather at least one IPv6 candidate
-  * Data throughput
-    * Establishes a loopback call and tests data channels throughput on the link
-  * Video bandwidth
-    * Establishes a loopback call and tests video performance on the link
-    * Measures rtt on media channels.
-    * Measures bandwidth estimation performance (rampup time, max, average)
+## Deployment
 
-## Manual tests ##
-Due to their time duration they are not part of the normal test suite and need to be run explicitly.
-* [Network latency](https://test.webrtc.org/?test_filter=Network latency)
-  * Establishs a loopback call and sends very small packets (via data channels) during 5 minutes plotting them to the user. It can be used to identify issues on the network.
-
-## Other manual test pages ##
-* [Audio and Video streams](https://test.webrtc.org/manual/audio-and-video/)
-* [Iframe apprtc](https://test.webrtc.org/manual/iframe-apprtc/)
-* [Iframe video](https://test.webrtc.org/manual/iframe-video/)
-* [Multiple audio streams](https://test.webrtc.org/manual/multiple-audio/)
-* [Multiple peerconnections](https://test.webrtc.org/manual/multiple-peerconnections/)
-* [Multiple video devices](https://test.webrtc.org/manual/multiple-video-devices/)
-* [Multiple video streams](https://test.webrtc.org/manual/multiple-video/)
-* [Peer2peer](https://test.webrtc.org/manual/peer2peer/)
-* [Peer2peer iframe](https://test.webrtc.org/manual/peer2peer-iframe/)
-* [Single audio stream](https://test.webrtc.org/manual/single-audio/)
-* [Single video stream](https://test.webrtc.org/manual/single-video/)
-
-## Contributing ##
-Patches and issues welcome! See [CONTRIBUTING](https://github.com/GoogleChrome/webrtc/blob/master/CONTRIBUTING.md) for instructions. All contributors must sign a contributor license agreement before code can be accepted. Please complete the agreement for an [individual](https://developers.google.com/open-source/cla/individual) or a [corporation](https://developers.google.com/open-source/cla/corporate) as appropriate. The [Developer's Guide](https://bit.ly/webrtcdevguide) for this repo has more information about code style, structure and validation.
-
-## Development ##
-Make sure to install NodeJS and NPM before continuing. Note that we have been mainly been using Posix when developing TestRTC hence developer tools might not work correctly on Windows.
-
-#### Install developer tools and frameworks ####
-```bash
-npm install
+### Setup app :
 ```
-
-#### Install dependencies ####
-```bash
-bower update
-```
-
-#### Run linters (currently very limited set is run) ####
-```bash
+cd /opt
+git clone https://github.com/misskecupbung/testrtc
+cd testrtc
+npm update
+npm install --unsafe-perm=true --allow-root
+npm install -g npm bower grunt
+bower update --allow-root
 grunt
-```
-
-#### Build testrtc ####
-Cleans out/ folder if it exists else it's created, then it copies and vulcanizes the resources needed to deploy this on Google App Engine.
-```
 grunt build
 ```
 
-#### Run non vulcanized version of TestRTC using (Google App Engine SDK for Python)(https://cloud.google.com/appengine/downloads). This is useful while developing. ####
-```bash
-python dev_appserver.py app.yml
+## Install google-cloud-sdk :
+```
+apt install python-pip -y
+pip install webapp2 webob bootstrapping
+cd /opt
+curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-292.0.0-linux-x86_64.tar.gz
+tar zxvf google-cloud-sdk-292.0.0-linux-x86_64.tar.gz google-cloud-sdk
+./google-cloud-sdk/install.sh
+vim /etc/profile
+...
+#this next line enables pythonpath cloudsdk and appengine homedir
+export PYTHONPATH=${PYTHONPATH}:$(gcloud info --format="value(installation.sdk_root)")/platform/google_appengine
+export CLOUDSDK_ROOT_DIR="/opt/google-cloud-sdk"
+export APPENGINE_HOME="${CLOUDSDK_ROOT_DIR}/platform/appengine-java-sdk"
+export GAE_SDK_ROOT="${CLOUDSDK_ROOT_DIR}/platform/google_appengine"
+
+# The next line enables Java libraries for Google Cloud SDK
+export CLASSPATH="${APPENGINE_HOME}/lib":${CLASSPATH}
+
+# The next line enables Python libraries for Google Cloud SDK
+#export PYTHONPATH=${GAE_SDK_ROOT}:${PYTHONPATH}
+...
+source /etc/profile
+gcloud components update
+gcloud components install app-engine-python app-engine-python-extras appctl
 ```
 
-#### Run vulcanized version of TestRTC using (Google App Engine SDK for Python)(https://cloud.google.com/appengine/downloads) (Requires the Build testrtc step to be performed first). ####
-```bash
-python dev_appserver.py out/app.yml
+## Custom file Gruntfile.js :
+```
+vim /opt/testrtc/Gruntfile.js :
+...
+    //   'API_KEY': process.env.API_KEY,
+         'TURN_URL': 'turn.example.com:5349'
+    //   'TURN_URL': 'https://networktraversal.googleapis.com/v1alpha/iceconfig?key='
+...
+```
+## Custom file .eslintrc :
+```
+vim /opt/testrtc/.eslintrc
+...
+    "API_KEY": false,
+
+```
+* Custom file call.js :
+```
+vim /opt/testrtc/src/js/call.js
+...
+########### Before ##############
+
+// Get a TURN config, either from settings or from network traversal server.
+Call.asyncCreateTurnConfig = function(onSuccess, onError) {
+  var settings = currentTest.settings;
+  if (typeof(settings.turnURI) === 'string' && settings.turnURI !== '') {
+    var iceServer = {
+      'username': settings.turnUsername || '',
+      'credential': settings.turnCredential || '',
+      'urls': settings.turnURI.split(',')
+    };
+    var config = {'iceServers': [iceServer]};
+    report.traceEventInstant('turn-config', config);
+    setTimeout(onSuccess.bind(null, config), 0);
+  } else {
+    Call.fetchTurnConfig_(function(response) {
+      var config = {'iceServers': response.iceServers};
+      report.traceEventInstant('turn-config', config);
+      onSuccess(config);
+    }, onError);
+  }
+};
+
+// Get a STUN config, either from settings or from network traversal server.
+Call.asyncCreateStunConfig = function(onSuccess, onError) {
+  var settings = currentTest.settings;
+  if (typeof(settings.stunURI) === 'string' && settings.stunURI !== '') {
+    var iceServer = {
+      'urls': settings.stunURI.split(',')
+    };
+    var config = {'iceServers': [iceServer]};
+    report.traceEventInstant('stun-config', config);
+    setTimeout(onSuccess.bind(null, config), 0);
+  } else {
+    Call.fetchTurnConfig_(function(response) {
+      var config = {'iceServers': response.iceServers.urls};
+      report.traceEventInstant('stun-config', config);
+      onSuccess(config);
+    }, onError);
+  }
+};
+
+############## After #############
+
+// Get a TURN config, either from settings or from network traversal server.
+Call.asyncCreateTurnConfig = function(onSuccess, onError) {
+  var settings = currentTest.settings;
+   console.log("test-turn")
+   console.log(settings)
+  if (typeof(settings.turnURI) === 'string' && settings.turnURI !== '') {
+    var iceServer = {
+      'username': settings.turnUsername || '',
+      'credential': settings.turnCredential || '',
+      'urls': settings.turnURI.split(',')
+    };
+    var config = {'iceServers': [iceServer]};
+    report.traceEventInstant('turn-config', config);
+    setTimeout(onSuccess.bind(null, config), 0);
+  } else {
+    var iceServer = {
+      'username': 'USERNAME',
+      'credential': 'PASSWORD',
+      'urls': 'turn:turn.example.com:5349'.split(',')
+    };
+    var config = {'iceServers': [iceServer]};
+    report.traceEventInstant('turn-config', config);
+    setTimeout(onSuccess.bind(null, config), 0);
+  }
+};
+// Get a STUN config, either from settings or from network traversal server.
+Call.asyncCreateStunConfig = function(onSuccess, onError) {
+  var settings = currentTest.settings;
+  if (typeof(settings.stunURI) === 'string' && settings.stunURI !== '') {
+    var iceServer = {
+      'urls': settings.stunURI.split(',')
+    };
+    var config = {'iceServers': [iceServer]};
+    report.traceEventInstant('stun-config', config);
+    setTimeout(onSuccess.bind(null, config), 0);
+  } else {
+    var iceServer = {
+      'urls': 'stun:turn.example.com:5349'.split(',')
+    };
+    var config = {'iceServers': [iceServer]};
+    report.traceEventInstant('stun-config', config);
+    setTimeout(onSuccess.bind(null, config), 0);
+  }
+};
+
+
+###### Bottom, custome like this #######
+
+xhr.open('POST', TURN_URL + API_KEY, false);
+...
+
+grunt
+grunt build
+## Testing with custom port
+```
+python /opt/google-cloud-sdk/bin/dev_appserver.py /opt/testrtc/out/app.yaml --enable_host_checking=False
+```
+## Setup service :
+```
+# This setup is for can run even reboot
+
+vim /etc/systemd/system/testrtc.service 
+...
+[Unit]
+Description=Test RTC
+
+[Service]
+User=root
+ExecStart=/usr/bin/python /opt/google-cloud-sdk/bin/dev_appserver.py /opt/testrtc/out/app.yaml --enable_host_checking=False --port 8081 --admin_port 8082
+
+[Install]
+WantedBy=default.target
+...
+
+systemctl enable testrtc.service
+systemctl start testrtc.service
+netstat -tulpn
 ```
